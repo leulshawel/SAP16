@@ -113,4 +113,3 @@ with open("rom.bin", "wb") as file:
 	for word in memory:
 		file.write(struct.pack("H", word))
 print("Done")
-print(var)
