@@ -1,0 +1,14 @@
+Ths is the documetation and instraction set arch for Core16 Cpu
+
+Features
+    Support for most of the basic/important instractions
+    Stack 
+
+
+
+Instructions
+    LOAD
+    STORE
+    MOV
+    MOV IMM
+    
