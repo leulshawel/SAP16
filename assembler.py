@@ -3,6 +3,7 @@ import sys, os
 
 path = sys.argv[1]
 ENTRY = 65535
+
 with open (path, "r") as source:
 	code = source.read()
 
@@ -47,7 +48,6 @@ addr = 0
 offset = 0
 for lineNum, line in enumerate(lines):
         
-        line.strip()
         tokens = line.split(" ")
         
         if len(line) == 0 or line.startswith("!"):
@@ -73,6 +73,7 @@ for lineNum, line in enumerate(lines):
 	
 	line.strip()
 	tokens = line.split(" ")
+ 
 	intLen = len(tokens)
 	args = tokens[1:intLen]
 	#print(args)

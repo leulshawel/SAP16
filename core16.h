@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #define word_size16  //A single Word is 16 Bits or 2 Bytes
 #define memory_addr_space 65536 //The max Address the cpu can address
 #define ram_size memory_addr_space * 2 //Ram size in bytes

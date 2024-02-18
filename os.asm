@@ -10,11 +10,6 @@ int_vec_table:
 sys_handler_addr= $sys_call
 
 
-
-
-
-
-
 !handle write sys call here
 .org %1000
 sys_write:
@@ -31,14 +26,15 @@ ret
 
 
 
-!Entry point of custo os
+!Entry point of custom os
 .org %0
 .start
 os:
 !0000 >> 0100 is stack
 sps %100
 sys
-jump $halt
+jmp $halt
+
 
 !Main sys call handler routin
 !looks at register values to figure sys call type
@@ -59,5 +55,4 @@ pop pc
 
 
 halt:
-halt
 halt
