@@ -1,18 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "core16.h"
-
+#include <unistd.h>
+#include <stdbool.h>
+#include <string.h>
 
 word memory[memory_addr_space];
 word regs[regNum]; //PC, SP, r1-r14
 
 
-void read_memory(){
+void read_memory(char* path){
   
   FILE* ram;
-  ram = fopen("rom.bin", "rb");
+  ram = fopen(path, "rb");
   
-  fread(memory, memory_addr_space*2, 1, ram);
+  fread(memory, 2, memory_addr_space, ram);
 }
 
 
@@ -47,16 +49,44 @@ void mem_dump(word start, word end){
   }
 }
 
+void saveStateFile(char* path){
+  FILE* stateFile = fopen(path, "ab");
+  fwrite(memory, 2, memory_addr_space, stateFile);
+  fwrite(regs, 2, regNum, stateFile);
+
+}
+
+void loadStateFile(char* path){
+  word temp[memory_addr_space+16];
+  FILE* stateFile = fopen(path, "rb");
+  fread(temp, 2, memory_addr_space+16, stateFile);
+  memcpy(memory, temp, memory_addr_space*2);
+  memcpy(regs, &temp[memory_addr_space], 32);
+}
+
+void ramFileDump(char* path){
+  FILE* ramFile = fopen(path, "wb");
+  fwrite(memory, 2, memory_addr_space, ramFile);
+}
+
 int main(int argc, char** argv){
-   
-  printf("\n");
-  word clock = 0x1;
+  char* ramFile;
+  bool dumpMemory = false;
+  bool saveState = false;
+  bool loadState = false;
+
+  bool clock = true;
   word inst, opcode;
   __int16_t temp;
-  word args = 0; //0000LNCZR1R1R1R1XXXX
-  read_memory(); //read main memory (ram) file
-  //mem_dump(0, 65535); //dump whole memory
+  word args = 0;  printf("\n"); //0000LNCZR1R1R1R1XXXX
+
+  
+  if (!loadState){
+  read_memory("rom.bin"); //read main memory (ram) file
   regs[PC] = memory[ENTRY]; //program entry point
+  regs[SP] = STACK;
+  }else
+    loadStateFile("state.bin");
 
   while (clock){ 
     dump(); //CPU status
@@ -67,13 +97,9 @@ int main(int argc, char** argv){
 
     //decode
     opcode = (inst & 0x7f); //opcode
-    //printf("Opcode: %02x\n", opcode);
     args = (args&0xff00) | ((inst & 0xff00)>>8);
-    //printf("%04x\n", inst&0xff00);
     int8 r1 = (args&0x0f);
     int8 r2 = (args&0xf0)>>4;
-    // printf("rs1: %x\n", r1);
-    //printf("\nopcode: %01hhx, args: %01hhx\n", opcode, args);
     
     //Excute
     switch(opcode){
@@ -155,7 +181,7 @@ int main(int argc, char** argv){
           regs[r1] = memory[regs[SP]];
           break;
       case 0xf: //HALT
-          clock = 0;
+          clock = false;
 	        break;
       case 0x13: //CALL
           memory[regs[SP]] = regs[PC]+1;
@@ -211,6 +237,6 @@ int main(int argc, char** argv){
     printf("LNCZ: %x\n\n\n", (args&0x0f00)>>8); //Print CPU status bits
 
   }
-    
+
   return 0;
 }

@@ -1,0 +1,4 @@
+what does an operating system do?
+    manage resources
+        bredging the gap b/n procs and hardware
+    manage processes

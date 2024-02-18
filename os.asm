@@ -35,10 +35,11 @@ ret
 .org %0
 .start
 os:
-movi r1 #0
-sys
 jmp $halt
 
+!sps %2000
+!movi r1 #0
+!sys
 
 !Main sys call handler routin
 !looks at register values to figure sys call type
@@ -59,4 +60,5 @@ pop pc
 
 
 halt:
+halt
 halt

@@ -13,6 +13,6 @@
 #define regNum 16 //Number of registers
 #define ENTRY 65535  //Address of reset vector
 #define INT_VECT 65534 //Address of Intrupt vector
-
+#define STACK 1000
 typedef __uint16_t word; 
 typedef unsigned char int8;		
