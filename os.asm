@@ -30,10 +30,19 @@ ret
 .org %0
 .start
 os:
-!0000 >> 0100 is stack
-sps %100
-sys
-jmp $halt
+id r0
+movi r1 #256
+movi r2 #1
+movi r4 #0
+add r0 r4
+set_stack:
+jiz $start
+add r1 r1
+sub r0 r2
+jmp $set_stack
+start:
+mov r1 sp
+jmp $sleep
 
 
 !Main sys call handler routin
@@ -56,3 +65,6 @@ pop pc
 
 halt:
 halt
+
+sleep:
+slp
