@@ -1,12 +1,12 @@
 import json, struct
-import sys
+import sys, os
 
 path = sys.argv[1]
 ENTRY = 65535
 with open (path, "r") as source:
 	code = source.read()
 
-with open ("machineCode.json") as file:
+with open (f"{os.getcwd()}/machineCode.json") as file:
 	machineCode = json.load(file)
 
 

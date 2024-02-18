@@ -35,11 +35,10 @@ ret
 .org %0
 .start
 os:
-jmp $halt
-
-!sps %2000
-!movi r1 #0
-!sys
+!0000 >> 0100 is stack
+sps %100
+sys
+jump $halt
 
 !Main sys call handler routin
 !looks at register values to figure sys call type
