@@ -8,11 +8,17 @@
 #define ENTRY 65535  //Address of reset vector
 #define INT_VECT 65534 //Address of Intrupt vector
 #define CORENUM 3
+#define RAMSIZE 2000
 
 
 typedef __uint16_t word; 
 typedef unsigned char int8;	
 
+
+typedef struct{
+    word ram[RAMSIZE];
+    word rom[memory_addr_space - RAMSIZE];
+}Memory;
 
 typedef struct 
 {
@@ -28,5 +34,7 @@ typedef struct
   word memory[memory_addr_space];
   Core cores[CORENUM];
 }Cpu;
+
+
 
 

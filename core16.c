@@ -22,7 +22,7 @@ void read_memory(char* path){
 
 void dump(Core* core){
   printf("core:  %d\n", core->coreId);
-  for (int i=0; i<regNum; i++){
+  for (int i=0; i < regNum; i++){
     if (i==PC)
       printf("%s", "PC ");
     else if (i==SP)
@@ -54,16 +54,20 @@ void mem_dump(word start, word end){
 void saveStateFile(char* path, Core* core){
   FILE* stateFile = fopen(path, "ab");
   fwrite(cpu.memory, 2, memory_addr_space, stateFile);
-  fwrite(core->regs, 2, regNum, stateFile);
+  for (int i=0; i < CORENUM; i++)
+    fwrite(cpu.cores[i].regs, 2, regNum, stateFile);
 
 }
 
-void loadStateFile(char* path, Core* core){
-  word temp[memory_addr_space+16];
-  FILE* stateFile = fopen(path, "rb");
-  fread(temp, 2, memory_addr_space+16, stateFile);
-  memcpy(cpu.memory, temp, memory_addr_space*2);
-  memcpy(core->regs, &temp[memory_addr_space], 32);
+void loadStateFile(char* path){
+    word temp[memory_addr_space+16];
+    FILE* stateFile = fopen(path, "rb");
+    fread(temp, 2, memory_addr_space+(16*CORENUM), stateFile);
+    memcpy(cpu.memory, temp, memory_addr_space*2);
+    
+    for (int i=0; i < CORENUM; i++)
+      memcpy(cpu.cores[i].regs, &temp[memory_addr_space+(i*16)], 32);
+  
 }
 
 void ramFileDump(char* path){
@@ -71,12 +75,10 @@ void ramFileDump(char* path){
   fwrite(cpu.memory, 2, memory_addr_space, ramFile);
 }
 
+
 int main(int argc, char** argv){
 
   Core* core;
-  char* ramFile;
-  bool dumpMemory = false;
-  bool saveState = false;
   bool loadState = false;
 
   bool clock = true;
@@ -84,17 +86,16 @@ int main(int argc, char** argv){
   __int16_t temp;
   word args = 0;  printf("\n"); //0000LNCZR1R1R1R1XXXX
 
-  read_memory("rom.bin"); //read main memory (ram) file
-  for (int i=0; i < CORENUM; i++){
-    if (!loadState){
+  
+  if (!loadState){
+    read_memory("rom.bin"); //read main memory (ram) file
+    for (int i=0; i < CORENUM; i++){
     core = &cpu.cores[i];
     core->regs[PC] = cpu.memory[ENTRY]; //program entry point
     core->coreId = i;
     core->sleep = 0;
-    
-    }else
-      loadStateFile("state.bin", core);
-  }
+    }
+  }else loadStateFile("state.bin");
 
   while (clock){ 
     for (int i=0; i < CORENUM; i++){

@@ -42,6 +42,7 @@ sub r0 r2
 jmp $set_stack
 start:
 mov r1 sp
+id r0
 jmp $sleep
 
 
