@@ -206,12 +206,9 @@ int main(int argc, char** argv){
             break;
         case 0x15: //SYS
             int index = r1 | (r2 << 4);
-            printf("%x  %x  %x", index, r1, r2);
             cpu.memory[core->regs[SP]] = core->regs[PC];
             core->regs[SP]--;
             core->regs[PC] = cpu.memory[INT_VECT]+index;
-            dump(core);
-            return 0;
             break;
         case 0x17: //CALL MEM[REG[r1]]
             cpu.memory[core->regs[SP]] = core->regs[PC];
