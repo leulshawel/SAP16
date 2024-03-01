@@ -30,7 +30,7 @@ ret
 .org %0
 .start
 os:
-
+halt
 sys r1 r0
 
 

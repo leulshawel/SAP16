@@ -10,3 +10,6 @@ a linux excutable binary of the core emulator [core],
 an assembler for the custom assembly "language" written in python [assembler.py]
 
 Not done working on options (arguments)
+-s [statefile] save the state of the cpu to a statefile
+-d dump the memory of cpu
+-c load a state from statefile to continue running from that state
