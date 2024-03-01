@@ -30,6 +30,7 @@ ret
 .org %0
 .start
 os:
+
 sys r1 r0
 
 
@@ -42,12 +43,6 @@ add r0 r1
 ldrr r0
 callr r0
 pop pc
-
-
-
-
-
-
 
 
 
