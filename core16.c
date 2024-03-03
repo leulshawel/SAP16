@@ -1,118 +1,122 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "core16.h"
-#include <unistd.h>
-#include <stdbool.h>
-#include <string.h>
 
-
-
-
-
-Cpu cpu;
-
+//read memory file in to the ram
 void read_memory(char* path){
-  
   FILE* ram;
   ram = fopen(path, "rb");
-  
   fread(cpu.memory, 2, memory_addr_space, ram);
 }
 
 
-void dump(Core* core){
-  printf("core:  %d\n", core->coreId);
-  for (int i=0; i < regNum; i++){
-    if (i==PC)
-      printf("%s", "PC ");
-    else if (i==SP)
-      printf("%s", "SP ");
-    else if (i==FP)
-	printf("%s", "FP ");
-    else
-      printf("%s%d", "R", i);
-    
+//print the current state of the cores
+void dump(__int8_t corenum){
+  Core* core;
+  //loop though all the cores printing the registers
+  for (int i=0; i < corenum; i++){
+    core = &cpu.cores[i];
+    printf("core:  %d\n", core->coreId);
+    for (int i=0; i < regNum; i++){
+      if (i==PC)
+        printf("%s", "PC ");
+      else if (i==SP)
+        printf("%s", "SP ");
+      else if (i==FP)
+    printf("%s", "FP ");
+      else
+        printf("%s%d", "R", i);
+      
 
-    if ((i) < 10)
-	    printf(" ");
-    printf(" : ");
-    printf("%04x  ", core->regs[i]);
-    if ((i+1)%4 == 0)
-	    printf("\n");
-    }
-  printf("inst: %04x\n", cpu.memory[core->regs[PC]]);
-}
-
-void mem_dump(word start, word end){
-  for (int i=start; i<=end; i++){
-    printf("%04x: %04x  ", i, cpu.memory[i]);
-    if (i%5 == 0)
-      printf("\n");
+      if ((i) < 10)
+        printf(" ");
+      printf(" : ");
+      printf("%04x  ", core->regs[i]);
+      if ((i+1)%4 == 0)
+        printf("\n");
+      }
+    printf("inst: %04x,   LNCZ: %x\n", cpu.memory[core->regs[PC]], core->status); //print the current instruction and status flags
   }
 }
 
-void saveStateFile(char* path, Core* core){
-  FILE* stateFile = fopen(path, "ab");
-  fwrite(cpu.memory, 2, memory_addr_space, stateFile);
-  for (int i=0; i < CORENUM; i++)
-    fwrite(cpu.cores[i].regs, 2, regNum, stateFile);
-
-}
-
-void loadStateFile(char* path){
-    word temp[memory_addr_space+16];
-    FILE* stateFile = fopen(path, "rb");
-    fread(temp, 2, memory_addr_space+(16*CORENUM), stateFile);
-    memcpy(cpu.memory, temp, memory_addr_space*2);
-    
-    for (int i=0; i < CORENUM; i++)
-      memcpy(cpu.cores[i].regs, &temp[memory_addr_space+(i*16)], 32);
-  
-}
-
-void ramFileDump(char* path){
-  FILE* ramFile = fopen(path, "wb");
-  fwrite(cpu.memory, 2, memory_addr_space, ramFile);
-}
 
 
 int main(int argc, char** argv){
+  int ch; //for arg parssing
+  Core* core; //what core are we on
 
-  Core* core;
-  bool loadState = false;
+  //is a spacific flag set
+  bool lflag = false; //load state flag
+  bool dflag = false; //dum memory flag
+  bool sflag = false; //save state flag
 
-  bool clock = true;
-  word inst, opcode;
-  __int16_t temp;
-  word args = 0;  printf("\n"); //0000LNCZR1R1R1R1XXXX
+  //This hold the argumnts of the options
+  char* statefile = NULL; //save and load state file path
+  char* memfile = NULL;   //dump memory file path
 
-  
-  if (!loadState){
-    read_memory("rom.bin"); //read main memory (ram) file
-    for (int i=0; i < CORENUM; i++){
-    core = &cpu.cores[i];
-    core->regs[PC] = cpu.memory[ENTRY]; //program entry point
-    core->coreId = i;
-    core->sleep = 0;
+  bool clock = true;      //the clock of the cpu 
+  __int8_t corenum = CORENUM; //default number of cores (can be changed using -c)
+
+  word inst, opcode;      //instruction and opcode
+  __int16_t temp;         //hold intermediate values during instruction excution 
+  word args = 0;          //the arguments of an insruction
+  printf("\n");
+
+
+  //ctrl + c handler
+  void kill_hundler(){
+    clock = false;
+  }
+  signal(SIGINT, kill_hundler); 
+
+  //parse arguments passed
+  while((ch = getopt(argc, argv, "d:l:s:c:")) != -1){
+    switch (ch)
+    {
+    case 'l':
+      lflag = true;
+      statefile = optarg;
+      break;
+    case 's':
+      sflag = true;
+      statefile = optarg;
+      break;
+    case 'd':
+      dflag = true;
+      memfile = optarg;
+    case 'c':
+      corenum = (__int8_t) atoi(optarg);
+      break;
     }
-  }else loadStateFile("state.bin");
+  }
 
-  while (clock){ 
-    for (int i=0; i < CORENUM; i++){
+  //read rom.bin file and set up the cores if we are not loading a state
+  if (!lflag){
+    read_memory("rom.bin"); 
+    for (int i=0; i < corenum; i++){
       core = &cpu.cores[i];
-      if (core->sleep) continue;
-      dump(core);
+      core->regs[PC] = cpu.memory[ENTRY];  //move the reset vector in to the program couter
+      core->coreId = i;                    //assign all cores an id (used by id instruction)
+      core->sleep = 0;                     //this halts the core if set to 1 (only that core)
+    }
+  }else loadStateFile(statefile);          //load a state from a file if -l option provided
+
+
+  //fetch -> decode -> excute cycle
+  while (clock){ 
+    //loop though all the cores excuting one instruction per core
+    for (int i=0; i < corenum; i++){
+      core = &cpu.cores[i];
+      if (core->sleep) continue; //continue if that core is sleep
 
       //fetch
       inst = cpu.memory[core->regs[PC]];
       core->regs[PC]++;
 
       //decode
-      opcode = (inst & 0xff); //opcode
-      int8 r1 = (inst & 0x0f00) >> 8; //des reg
-      int8 r2 = inst >> 12; //src reg
+      opcode = (inst & 0xff);         //opcode
+      int8 r1 = (inst & 0x0f00) >> 8; //dest reg
+      int8 r2 = inst >> 12;           //src reg
       
-      //Excute
+      //Excute  //the biggest switch statement i ever wrote
       switch(opcode){
         case 0x0:
             break;
@@ -246,13 +250,16 @@ int main(int argc, char** argv){
       //Cheking destination register and setting correspondig flag bits
       if(opcode > 0x4 && opcode < 0xf){
         if (temp == 0) core->status = 1;
-        else if (temp < 0) core->status = 4;
-        else if (temp > 65535) core->status = 4;
+        else if (temp > 65535) core->status = 2; //
       }
-      printf("LNCZ: %x\n\n\n", core->status); //Print core status bits
+      
       if (!clock) break;
     }
   }
-
+  if (dflag)
+    ramFileDump(memfile);
+  if (sflag)
+    saveStateFile(statefile);
+  dump(corenum);
   return 0;
 }

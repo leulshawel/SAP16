@@ -30,6 +30,7 @@ ret
 .org %0
 .start
 os:
+jmp $os
 halt
 sys r1 r0
 
