@@ -3,6 +3,7 @@ import sys, os
 
 path = sys.argv[1]
 ENTRY = 65535
+INTVEC = 65534
 
 with open (path, "r") as source:
 	code = source.read()
@@ -31,11 +32,11 @@ def strtohex(str):
 
 def getValue(value):
 	tmp = 0
-	if value.startswith("$"):  #$ Variable
+	if value.startswith("$"):  #   $ >> Variable
 		tmp = int(var[value[1:]+':'])
-	elif value.startswith("%"): #% Hex
+	elif value.startswith("%"): #  % >> Hex
 		tmp = strtohex(value[1:])
-	elif value.startswith("#"): ## Immediate
+	elif value.startswith("#"): #  # >> Immediate
 		tmp = int(value[1:])
 	else:
 		print("Invalid data identifier")
@@ -49,6 +50,7 @@ offset = 0
 for lineNum, line in enumerate(lines):
         
         tokens = line.split(" ")
+        print(tokens)
         
         if len(line) == 0 or line.startswith("!"):
                 continue
@@ -60,7 +62,7 @@ for lineNum, line in enumerate(lines):
                 addr = getValue(tokens[1])
         elif op == ".word":
                 addr += len(tokens[1])
-        elif op == ".start" or "=" in op:
+        elif op == ".start" or "=" in op or op == ".intvec":
                 pass
         else:
                 addr += machineCode[op][1]
@@ -73,10 +75,10 @@ for lineNum, line in enumerate(lines):
 	
 	line.strip()
 	tokens = line.split(" ")
- 
+	print(tokens)
+
 	intLen = len(tokens)
 	args = tokens[1:intLen]
-	#print(args)
 	nextFilled = False
 
 	if len(line) == 0 or line.startswith("!"):
@@ -92,6 +94,8 @@ for lineNum, line in enumerate(lines):
 		memory[ENTRY] = addr
 	elif "=" in op:
 		memory[var[op[:-1]+':']] = getValue(tokens[1])
+	elif  op == ".intvec":
+		memory[INTVEC] = addr
 	else:
 		word = machineCode[op][0]
 		for i, arg in enumerate(args):

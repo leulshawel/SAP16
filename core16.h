@@ -36,7 +36,7 @@ typedef struct
 {
   word* memory;
   word regs[regNum];
-  __int8_t status; //XXXXLNCZ
+  __int8_t status; //XXXGLECZ
   __int8_t coreId;
   __int8_t sleep;
 }Core;
@@ -45,6 +45,7 @@ typedef struct
 {
   word memory[memory_addr_space];
   Core cores[CORENUM];
+  __int8_t corenum;
 }Cpu;
 
 Cpu cpu;
@@ -59,20 +60,20 @@ void mem_dump(word start, word end){
 
 
 void saveStateFile(char* path){
+  
   FILE* stateFile = fopen(path, "ab");
   fwrite(cpu.memory, 2, memory_addr_space, stateFile);
-  for (int i=0; i < CORENUM; i++)
+  for (int i=0; i < cpu.corenum; i++)
     fwrite(cpu.cores[i].regs, 2, regNum, stateFile);
-
 }
 
 void loadStateFile(char* path){
     word temp[memory_addr_space+16];
     FILE* stateFile = fopen(path, "rb");
-    fread(temp, 2, memory_addr_space+(16*CORENUM), stateFile);
+    fread(temp, 2, memory_addr_space+(16*cpu.corenum), stateFile);
     memcpy(cpu.memory, temp, memory_addr_space*2);
     
-    for (int i=0; i < CORENUM; i++)
+    for (int i=0; i < cpu.corenum; i++)
       memcpy(cpu.cores[i].regs, &temp[memory_addr_space+(i*16)], 32);
   
 }

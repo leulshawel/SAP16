@@ -33,7 +33,7 @@ void dump(__int8_t corenum){
       if ((i+1)%4 == 0)
         printf("\n");
       }
-    printf("inst: %04x,   LNCZ: %x\n", cpu.memory[core->regs[PC]], core->status); //print the current instruction and status flags
+    printf("inst: %04x   LNCZ: %x\n", cpu.memory[core->regs[PC]], core->status); //print the current instruction and status flags
   }
 }
 
@@ -53,7 +53,7 @@ int main(int argc, char** argv){
   char* memfile = NULL;   //dump memory file path
 
   bool clock = true;      //the clock of the cpu 
-  __int8_t corenum = CORENUM; //default number of cores (can be changed using -c)
+  cpu.corenum = CORENUM; //default number of cores (can be changed using -c)
 
   word inst, opcode;      //instruction and opcode
   __int16_t temp;         //hold intermediate values during instruction excution 
@@ -83,15 +83,17 @@ int main(int argc, char** argv){
       dflag = true;
       memfile = optarg;
     case 'c':
-      corenum = (__int8_t) atoi(optarg);
+      cpu.corenum = (__int8_t) atoi(optarg);
       break;
     }
   }
 
+
+
   //read rom.bin file and set up the cores if we are not loading a state
   if (!lflag){
     read_memory("rom.bin"); 
-    for (int i=0; i < corenum; i++){
+    for (int i=0; i < cpu.corenum; i++){
       core = &cpu.cores[i];
       core->regs[PC] = cpu.memory[ENTRY];  //move the reset vector in to the program couter
       core->coreId = i;                    //assign all cores an id (used by id instruction)
@@ -99,11 +101,10 @@ int main(int argc, char** argv){
     }
   }else loadStateFile(statefile);          //load a state from a file if -l option provided
 
-
   //fetch -> decode -> excute cycle
   while (clock){ 
     //loop though all the cores excuting one instruction per core
-    for (int i=0; i < corenum; i++){
+    for (int i=0; i < cpu.corenum; i++){
       core = &cpu.cores[i];
       if (core->sleep) continue; //continue if that core is sleep
 
@@ -177,7 +178,10 @@ int main(int argc, char** argv){
           break;
         case 0xe: //CMP
             temp = core->regs[r1] - core->regs[r2];
-            if ( temp < 0) core->status = 8;
+            if ( temp < 0) core->status |= 8;  //less
+            else if (temp == 0) core->status |= 4; //equal
+            else core->status |= 16; //greater
+            temp = 0x1;
           break;
         case 0x10: //SPS
             core->regs[SP] = cpu.memory[core->regs[PC]];
@@ -208,11 +212,10 @@ int main(int argc, char** argv){
             core->regs[PC] = cpu.memory[core->regs[SP]];
             core->regs[FP] = cpu.memory[core->regs[SP]-1];
             break;
-        case 0x15: //SYS
-            int index = r1 | (r2 << 4);
+        case 0x15: //INT
             cpu.memory[core->regs[SP]] = core->regs[PC];
             core->regs[SP]--;
-            core->regs[PC] = cpu.memory[INT_VECT]+index;
+            core->regs[PC] = cpu.memory[INT_VECT];
             break;
         case 0x17: //CALL MEM[REG[r1]]
             cpu.memory[core->regs[SP]] = core->regs[PC];
@@ -237,13 +240,31 @@ int main(int argc, char** argv){
             else
               core->regs[PC]++;
               break;
-        case 0x1c:
+        case 0x1f: //JE
+            if ((core->status & 0x4) != 0)
+              core->regs[PC] = cpu.memory[core->regs[PC]];
+            else
+              core->regs[PC]++;
+              break;
+        case 0x20: //JL
+            if ((core->status & 0x8) != 0)
+              core->regs[PC] = cpu.memory[core->regs[PC]];
+            else
+              core->regs[PC]++;
+              break;
+        case 0x21: //JG
+            if ((core->status & 0x10) != 0)
+              core->regs[PC] = cpu.memory[core->regs[PC]];
+            else
+              core->regs[PC]++;
+              break;
+        case 0x1c:  //NOT
             core->regs[r1] = !core->regs[r1];
             break;
-        case 0x1d:
+        case 0x1d:  //ID
             core->regs[r1] = core->coreId;
             break;
-        case 0x1e:
+        case 0x1e:  //SLP
             core->sleep = 1;
             break;
       }
@@ -256,10 +277,12 @@ int main(int argc, char** argv){
       if (!clock) break;
     }
   }
+  //save memory or state to file depending on options passed 
+  //before dumping the cpu and exiting the program
   if (dflag)
     ramFileDump(memfile);
   if (sflag)
     saveStateFile(statefile);
-  dump(corenum);
+  dump(cpu.corenum);
   return 0;
 }
