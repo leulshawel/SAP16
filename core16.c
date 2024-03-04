@@ -105,6 +105,7 @@ int main(int argc, char** argv){
       
       if (core->sleep) continue; //continue if that core is sleep
       dump(core);
+
       //fetch
       inst = cpu.memory[core->regs[PC]];
       core->regs[PC]++;
@@ -272,7 +273,7 @@ int main(int argc, char** argv){
             core->regs[PC]++;
             break;
       }
-      //Cheking destination register and setting correspondig flag bits
+      //Cheking destination register and setting correspondig flag bits (for instructions that change flags)
       if(opcode > 0x4 && opcode < 0xf){
         if (temp == 0) core->status = 1;
         else if (temp > 65535) core->status = 2; //
@@ -281,16 +282,17 @@ int main(int argc, char** argv){
       if (!clock) break;
     }
   }
-  //save memory or state to file depending on options passed 
+  //save memory or state to file depending on options passed, 
   //before dumping the cpu and exiting the program
   if (dflag)
     ramFileDump(memfile);
   if (sflag)
     saveStateFile(statefile);
 
-  for (int i=0; i < cpu.corenum; i++)
+  for (int i=0; i < cpu.corenum; i++){
     core = &cpu.cores[i];
     dump(core);
+  }
   
   return 0;
 }

@@ -50,7 +50,6 @@ offset = 0
 for lineNum, line in enumerate(lines):
         
         tokens = line.split(" ")
-        print(tokens)
         
         if len(line) == 0 or line.startswith("!"):
                 continue
@@ -75,7 +74,7 @@ for lineNum, line in enumerate(lines):
 	
 	line.strip()
 	tokens = line.split(" ")
-	print(tokens)
+	print(hex(addr), tokens)
 
 	intLen = len(tokens)
 	args = tokens[1:intLen]

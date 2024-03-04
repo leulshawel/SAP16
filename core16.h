@@ -68,7 +68,7 @@ void saveStateFile(char* path){
 }
 
 void loadStateFile(char* path){
-    word temp[memory_addr_space+16];
+    word temp[memory_addr_space+16*(cpu.corenum)];
     FILE* stateFile = fopen(path, "rb");
     fread(temp, 2, memory_addr_space+(16*cpu.corenum), stateFile);
     memcpy(cpu.memory, temp, memory_addr_space*2);
