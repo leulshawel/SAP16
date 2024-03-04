@@ -9,11 +9,7 @@ void read_memory(char* path){
 
 
 //print the current state of the cores
-void dump(__int8_t corenum){
-  Core* core;
-  //loop though all the cores printing the registers
-  for (int i=0; i < corenum; i++){
-    core = &cpu.cores[i];
+void dump(Core* core){
     printf("core:  %d\n", core->coreId);
     for (int i=0; i < regNum; i++){
       if (i==PC)
@@ -21,7 +17,7 @@ void dump(__int8_t corenum){
       else if (i==SP)
         printf("%s", "SP ");
       else if (i==FP)
-    printf("%s", "FP ");
+        printf("%s", "FP ");
       else
         printf("%s%d", "R", i);
       
@@ -33,8 +29,8 @@ void dump(__int8_t corenum){
       if ((i+1)%4 == 0)
         printf("\n");
       }
-    printf("inst: %04x   LNCZ: %x\n", cpu.memory[core->regs[PC]], core->status); //print the current instruction and status flags
-  }
+    printf("inst: %04x   LNCZ: %x\n\n", cpu.memory[core->regs[PC]], core->status); //print the current instruction and status flags
+  
 }
 
 
@@ -106,8 +102,9 @@ int main(int argc, char** argv){
     //loop though all the cores excuting one instruction per core
     for (int i=0; i < cpu.corenum; i++){
       core = &cpu.cores[i];
+      
       if (core->sleep) continue; //continue if that core is sleep
-
+      dump(core);
       //fetch
       inst = cpu.memory[core->regs[PC]];
       core->regs[PC]++;
@@ -116,6 +113,7 @@ int main(int argc, char** argv){
       opcode = (inst & 0xff);         //opcode
       int8 r1 = (inst & 0x0f00) >> 8; //dest reg
       int8 r2 = inst >> 12;           //src reg
+      
       
       //Excute  //the biggest switch statement i ever wrote
       switch(opcode){
@@ -267,6 +265,12 @@ int main(int argc, char** argv){
         case 0x1e:  //SLP
             core->sleep = 1;
             break;
+        case 0x22:  //XCHG
+            temp = cpu.memory[cpu.memory[core->regs[PC]]];
+            cpu.memory[cpu.memory[core->regs[PC]]] = core->regs[r1];
+            core->regs[r1] = temp;
+            core->regs[PC]++;
+            break;
       }
       //Cheking destination register and setting correspondig flag bits
       if(opcode > 0x4 && opcode < 0xf){
@@ -283,6 +287,10 @@ int main(int argc, char** argv){
     ramFileDump(memfile);
   if (sflag)
     saveStateFile(statefile);
-  dump(cpu.corenum);
+
+  for (int i=0; i < cpu.corenum; i++)
+    core = &cpu.cores[i];
+    dump(core);
+  
   return 0;
 }
