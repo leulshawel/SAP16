@@ -1,4 +1,4 @@
-#include "core16.h"
+#include "cpu16.h"
 
 //read memory file in to the ram
 void read_memory(char* path){
@@ -285,7 +285,7 @@ int main(int argc, char** argv){
   //save memory or state to file depending on options passed, 
   //before dumping the cpu and exiting the program
   if (dflag)
-    ramFileDump(memfile);
+    dumpRamFile(memfile);
   if (sflag)
     saveStateFile(statefile);
 

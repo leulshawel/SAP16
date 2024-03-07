@@ -63,22 +63,30 @@ void saveStateFile(char* path){
   
   FILE* stateFile = fopen(path, "ab");
   fwrite(cpu.memory, 2, memory_addr_space, stateFile);
-  for (int i=0; i < cpu.corenum; i++)
+  for (int i=0; i < cpu.corenum; i++){
     fwrite(cpu.cores[i].regs, 2, regNum, stateFile);
+    fwrite(&cpu.cores[i].sleep, 1, 1, stateFile);
+  } 
 }
 
+//this shit is not working :(
 void loadStateFile(char* path){
-    word temp[memory_addr_space+16*(cpu.corenum)];
-    FILE* stateFile = fopen(path, "rb");
-    fread(temp, 2, memory_addr_space+(16*cpu.corenum), stateFile);
-    memcpy(cpu.memory, temp, memory_addr_space*2);
+    int index =  2*memory_addr_space;
+    int size = memory_addr_space+32*(cpu.corenum)+cpu.corenum;
+    word temp[size];
     
-    for (int i=0; i < cpu.corenum; i++)
-      memcpy(cpu.cores[i].regs, &temp[memory_addr_space+(i*16)], 32);
-  
+    FILE* stateFile = fopen(path, "rb");
+    fread(temp, 2, size, stateFile);
+    memcpy(cpu.memory, temp, memory_addr_space*2);
+
+    for (int i=0; i < cpu.corenum; i++){
+      memcpy(cpu.cores[i].regs, &temp[index], 32);
+      memcpy(&cpu.cores[i].sleep, &temp[index+32], 1);
+      index =+33;
+    }
 }
 
-void ramFileDump(char* path){
+void dumpRamFile(char* path){
   FILE* ramFile = fopen(path, "wb");
   fwrite(cpu.memory, 2, memory_addr_space, ramFile);
 }
