@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import json, struct
 import sys, os
 
@@ -6,15 +8,10 @@ ENTRY = 65535
 INTVEC = 65534
 
 with open (path, "r") as source:
-	code = source.read()
+	lines = source.read().split('\n')
 
 with open (f"{os.getcwd()}/machineCode.json") as file:
 	machineCode = json.load(file)
-
-
-lines = code.split("\n")
-memory = [0 for i in range(0x10000)]
-
 
 def strtohex(str):
 	k = lambda x: ord(x) - 87
@@ -48,7 +45,9 @@ var = {}
 addr = 0
 offset = 0
 for lineNum, line in enumerate(lines):
-        
+        line = line.strip()
+        if line.startswith("!") or len(line) < 2:
+            continue
         tokens = line.split(" ")
         
         if len(line) == 0 or line.startswith("!"):
@@ -61,20 +60,21 @@ for lineNum, line in enumerate(lines):
                 addr = getValue(tokens[1])
         elif op == ".word":
                 addr += len(tokens[1])
-        elif op == ".start" or "=" in op or op == ".intvec":
+        elif op == ".start" or "=" in op or op == ".intvec" or op.startswith("$"):
                 pass
         else:
                 addr += machineCode[op][1]
 
 
 addr = 0
-offset = 0
-for lineNum, line in enumerate(lines):
-
+memory = [0 for i in range(0x10000)]
+for line in lines:
 	
-	line.strip()
+	line = line.strip()
+
+	if line.startswith("!") or len(line) < 2:
+		continue
 	tokens = line.split(" ")
-	print(hex(addr), tokens)
 
 	intLen = len(tokens)
 	args = tokens[1:intLen]
@@ -91,8 +91,8 @@ for lineNum, line in enumerate(lines):
 		addr = getValue(tokens[1])
 	elif op == ".start":
 		memory[ENTRY] = addr
-	elif "=" in op:
-		memory[var[op[:-1]+':']] = getValue(tokens[1])
+	elif op.startswith("$"):
+		memory[var[op[1:]+':']] = getValue(tokens[2])
 	elif  op == ".intvec":
 		memory[INTVEC] = addr
 	else:
@@ -100,7 +100,6 @@ for lineNum, line in enumerate(lines):
 		for i, arg in enumerate(args):
 			if ("#" in arg) or ("$" in arg) or ("%" in arg):
 				memory[addr+1] = getValue(arg)
-
 			else:
 				arg_ = machineCode[arg]
 				if i == 0:
