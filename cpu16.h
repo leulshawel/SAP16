@@ -58,34 +58,46 @@ void mem_dump(word start, word end){
   }
 }
 
-
+//this is easy cause fwrite appends to the file
 void saveStateFile(char* path){
-  
+  word padding[regNum];
   FILE* stateFile = fopen(path, "ab");
   fwrite(cpu.memory, 2, memory_addr_space, stateFile);
+
   for (int i=0; i < cpu.corenum; i++){
     fwrite(cpu.cores[i].regs, 2, regNum, stateFile);
     fwrite(&cpu.cores[i].sleep, 1, 1, stateFile);
+    fwrite(&cpu.cores[i].coreId, 1, 1, stateFile);    
+    fwrite(&cpu.cores[i].status, 1, 1, stateFile);    
   } 
+    fwrite(padding, 1, regNum, stateFile);    
+
 }
 
 //this shit is not working :(
 void loadStateFile(char* path){
     int index =  2*memory_addr_space;
-    int size = memory_addr_space+32*(cpu.corenum)+cpu.corenum;
+    int size = memory_addr_space + 16*cpu.corenum;
     word temp[size];
+    char* regStart;
     
     FILE* stateFile = fopen(path, "rb");
-    fread(temp, 2, size, stateFile);
+    fread(temp, 1, 2*size+cpu.corenum, stateFile);
     memcpy(cpu.memory, temp, memory_addr_space*2);
-
+    regStart = temp + memory_addr_space;
     for (int i=0; i < cpu.corenum; i++){
-      memcpy(cpu.cores[i].regs, &temp[index], 32);
-      memcpy(&cpu.cores[i].sleep, &temp[index+32], 1);
-      index =+33;
+      memcpy(cpu.cores[i].regs, regStart, regNum*2);
+      regStart += regNum * 2;
+      memcpy(&cpu.cores[i].sleep, regStart, 1);
+      regStart++;
+      memcpy(&cpu.cores[i].coreId,  regStart, 1);
+      regStart++;
+      memcpy(&cpu.cores[i].status, regStart, 1);
+      regStart++;
     }
 }
 
+//write the contents of memory to the memory file
 void dumpRamFile(char* path){
   FILE* ramFile = fopen(path, "wb");
   fwrite(cpu.memory, 2, memory_addr_space, ramFile);
