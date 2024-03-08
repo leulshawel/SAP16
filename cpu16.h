@@ -58,11 +58,12 @@ void mem_dump(word start, word end){
   }
 }
 
-//this is easy cause fwrite appends to the file
+//save the context of the cores
 void saveStateFile(char* path){
   word padding[regNum];
   FILE* stateFile = fopen(path, "ab");
-  fwrite(cpu.memory, 2, memory_addr_space, stateFile);
+  fwrite(cpu.memory, 2, memory_addr_space, stateFile);    
+  fwrite(&cpu.corenum, 1, 1, stateFile);
 
   for (int i=0; i < cpu.corenum; i++){
     fwrite(cpu.cores[i].regs, 2, regNum, stateFile);
@@ -74,25 +75,27 @@ void saveStateFile(char* path){
 
 }
 
-//this shit is not working :(
+//load a context
 void loadStateFile(char* path){
     int index =  2*memory_addr_space;
-    int size = memory_addr_space + 16*cpu.corenum;
+    int size = memory_addr_space + regNum*cpu.corenum;
     word temp[size];
     char* regStart;
     
     FILE* stateFile = fopen(path, "rb");
-    fread(temp, 1, 2*size+3*cpu.corenum, stateFile);
+    fread(temp, 1, 2*size+3*cpu.corenum+1, stateFile);
     memcpy(cpu.memory, temp, memory_addr_space*2);
     regStart = temp + memory_addr_space;
+    memcpy(&cpu.corenum, regStart, 1);                //the number of cores in the state file -c can overwrite this
+    regStart++;
     for (int i=0; i < cpu.corenum; i++){
-      memcpy(cpu.cores[i].regs, regStart, regNum*2);
+      memcpy(cpu.cores[i].regs, regStart, regNum*2);  //load the registerd
       regStart += regNum * 2;
-      memcpy(&cpu.cores[i].sleep, regStart, 1);
+      memcpy(&cpu.cores[i].sleep, regStart, 1);       //the sleep status if a core
       regStart++;
-      memcpy(&cpu.cores[i].coreId,  regStart, 1);
+      memcpy(&cpu.cores[i].coreId,  regStart, 1);     //coreId for that context
       regStart++;
-      memcpy(&cpu.cores[i].status, regStart, 1);
+      memcpy(&cpu.cores[i].status, regStart, 1);      //flags of a core
       regStart++;
     }
 }
