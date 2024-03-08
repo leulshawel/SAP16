@@ -1,11 +1,18 @@
+!this is a simple test code that take the cores in to a race condition
+!to setup a 512 byte stack and get an address for counting in an infinite loop
+!uses mov, movi, xchg, add, ldr, ldrr, str, strr, 
+
 .org #0
 key:
 key= #1
 
+.org #1
+stack:
 
-.org #100
+
+.org #2
 counter:
-counter= #1
+counter= #2
 
 
 .org %8000
@@ -31,6 +38,14 @@ inc r3
 mov r3 r4
 inc r4
 str r4 $counter
+
+!setup a stack
+ldr r2 $stack
+movi r5 #512
+add r2 r5
+mov r2 sp
+mov sp fp
+str r2 $stack
 
 !let the next core run
 movi r4 #1

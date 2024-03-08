@@ -1,15 +1,18 @@
 This is an emuater for a custom 16 bit arch SAP CPU with dev tool-kit
 
-usage: ./core -sc [statefile] -d [memorydumpfile] 
+usage: ./cpu16 -sl [statefile] -d [memorydumpfile] 
+-s save the context of cpu to file
+-l load a context to continue execution
+-d dump the memory only
+-c the number of cores you want
+
 
 Here you will find 
 	
 documentantion of the how this whole thing 'works' [DOC.txt],
-the source code for the emulator [Core16.c],
-a linux excutable binary of the core emulator [core],
-an assembler for the custom assembly "language" written in python [assembler.py]
+the source code for the emulator [cpu16.c, cpu16.h],
+a linux excutable binary of the cpu emulator [cpu16],
+an assembler for the custom assembly "language" written in python [assembler.py] that i hate
 
-Not done working on options (arguments)
--s [statefile] save the state of the cpu to a statefile
--d dump the memory of cpu
--c load a state from statefile to continue running from that state
+
+

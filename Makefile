@@ -9,4 +9,4 @@ rom.bin: os.asm
 	python3 assembler.py os.asm
 
 clear:
-	rm cpu16 rom.bin statefile.bin 
+	-rm cpu16 rom.bin statefile.bin 
