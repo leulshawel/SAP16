@@ -95,14 +95,7 @@ int main(int argc, char** argv){
       core->coreId = i;                    //assign all cores an id (used by id instruction)
       core->sleep = 0;                     //this halts the core if set to 1 (only that core)
     }
-  }else { 
-    loadStateFile(statefile);              //load a state from a file if -l option provided
-    dump((&cpu.cores[0]));
-    dump((&cpu.cores[1]));
-    dump((&cpu.cores[2]));
-    dump((&cpu.cores[3]));
-    return;
-  }
+  }else loadStateFile(statefile);              //load a state from a file if -l option provided
 
   //fetch -> decode -> excute cycle
   while (clock){ 

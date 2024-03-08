@@ -34,7 +34,7 @@ typedef struct{
 
 typedef struct 
 {
-  word* memory;
+  //word* memory;
   word regs[regNum];
   __int8_t status; //XXXGLECZ
   __int8_t coreId;
@@ -82,7 +82,7 @@ void loadStateFile(char* path){
     char* regStart;
     
     FILE* stateFile = fopen(path, "rb");
-    fread(temp, 1, 2*size+cpu.corenum, stateFile);
+    fread(temp, 1, 2*size+3*cpu.corenum, stateFile);
     memcpy(cpu.memory, temp, memory_addr_space*2);
     regStart = temp + memory_addr_space;
     for (int i=0; i < cpu.corenum; i++){
