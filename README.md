@@ -1,4 +1,4 @@
-This is an emuater for a custom 16 bit arch SAP CPU with dev tool-kit
+This is an emluater for a custom 16 bit arch SAP CPU with dev tool-kit
 
 usage: ./cpu16 -sl [statefile] -d [memorydumpfile] 
 -s save the context of cpu to file
