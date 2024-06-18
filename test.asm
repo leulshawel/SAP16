@@ -33,6 +33,7 @@ master:
     ldr r3 $counter
     id r0
     strr r0 r3
+
 !increment the counter address for the next core
     inc r3
     mov r3 r4
@@ -51,22 +52,19 @@ master:
     movi r4 #1
     str r4 $key
 
-    
 
 !do my count
+count:
+    movi r1 %1000
 count_loop:
     ldrr r0 r3
     inc r0
     strr r0 r3
+    cmp r0 r1
+    je $halt
     jmp $count_loop
-
-
-
-
-
-
-
-
+halt:
+    slp
 
 .org %1000
 .intvec

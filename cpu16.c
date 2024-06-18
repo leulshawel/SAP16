@@ -289,10 +289,10 @@ int main(int argc, char** argv){
   if (sflag)
     saveStateFile(statefile);
 
-  for (int i=0; i < cpu.corenum; i++){
-    core = &cpu.cores[i];
-    dump(core);
-  }
+  // for (int i=0; i < cpu.corenum; i++){
+  //   core = &cpu.cores[i];
+  //   dump(core);
+  // }
   
   return 0;
 }

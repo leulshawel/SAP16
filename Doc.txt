@@ -2,13 +2,20 @@ Ths is the documetation and instraction set arch for Core16 Cpu
 
 Features
     Support for most of the basic/important instractions
-    Stack 
+    Stack
+    Atomic Instructions
 
 
+Instruction Encoding
+
+    Instructions are variable length as some instructions only need destination and source registors 
+    while some require a 2 byte address as an argument 
 
 Instructions
-    LOAD
-    STORE
-    MOV
-    MOV IMM
-    
+    LOAD/STORE/MOVE/MOVI:  load/store/move immediate/move between registers
+    AND/OR/XOR?NOT:        bitwise logical and, or, xor, not ops
+    ADD/SUB/INC/DEC:       binary add, subtract, increament, decreament
+    SHL/SHR:               logical shift left and right
+    JMP/JIZ/JOC/JE/JL/JG:  jump, jump if zero, jump on carry, jump if equal, jump if less, jump if greater
+    SPS/PUSH/POP:          set stack pointer, push on to the stack, pop form the stack
+
