@@ -22,6 +22,9 @@ flags:<br>
 ```sh
 python3 assembler.py <your-asm-file-path>
 ```
-3. run ./cpu16
+3. run
+   ```sh
+   ./cpu16
+   ```
 
 
