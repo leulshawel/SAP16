@@ -1,8 +1,4 @@
-<b><h1>SAP 16</h1></b> This is an emluater for a simple as possible (SAP) CPU with dev tool-kit
-
-got experience in CPU architecture and assembly? then just take a look at the ./test.asm example code<br>
-you better on C? then take a llok at the CPU emulator source code<br>
-you want the list of instructions and some dettails on their workings? then take a look at doc.txt
+<b><h1>SAP 16</h1></b> This is an emluater for a simple as possible (SAP) 16bit CPU with dev tool-kit
 
 <b><h3>getting started</h3></b>
 
